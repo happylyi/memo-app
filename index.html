@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人备忘录 App V1.3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .input-section {
+            padding: 25px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .input-section textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .input-section textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .save-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .save-btn:active {
+            transform: translateY(0);
+        }
+
+        .memo-list {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .memo-list h2 {
+            font-size: 18px;
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #adb5bd;
+            padding: 40px 20px;
+            font-size: 14px;
+        }
+
+        .memo-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .memo-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .memo-content {
+            flex: 1;
+            cursor: pointer;
+            word-break: break-word;
+            line-height: 1.6;
+        }
+
+        .memo-content.highlighted {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .memo-time {
+            font-size: 11px;
+            color: #adb5bd;
+            margin-top: 8px;
+        }
+
+        /* 编辑按钮样式 */
+        .edit-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .edit-btn:hover {
+            background: #1976D2;
+            transform: scale(1.05);
+        }
+
+        .edit-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 删除按钮样式 */
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.2s, transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .delete-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 按钮容器样式 */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        /* 移动端适配样式 */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .input-section {
+                padding: 15px;
+            }
+
+            .input-section textarea {
+                height: 80px;
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .save-btn {
+                padding: 10px;
+                font-size: 15px;
+            }
+
+            .export-btn {
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            .memo-list {
+                padding: 15px;
+            }
+
+            .memo-list h2 {
+                font-size: 16px;
+            }
+
+            .memo-item {
+                padding: 12px;
+                flex-direction: column;
+            }
+
+            .memo-content {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .btn-group {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .edit-btn,
+            .delete-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+                margin-left: 0;
+            }
+
+            .memo-time {
+                font-size: 10px;
+            }
+        }
+
+        /* 编辑模式下的保存按钮样式 */
+        .save-btn.editing {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        /* 导出按钮样式 */
+        .export-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+
+        /* 滚动条样式 */
+        .memo-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .memo-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .memo-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .memo-list::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* 自定义弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.2s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-cancel {
+            background: #e9ecef;
+            color: #666;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #dee2e6;
+        }
+
+        .modal-btn-confirm {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #c82333;
+        }
+
+        /* ==================== 主题切换按钮样式 ==================== */
+        /* 主题切换按钮容器 - 固定在右上角 */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle-btn {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            min-height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 20px;
+        }
+
+        .theme-toggle-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ==================== 暗色模式样式 ==================== */
+        /* 暗色模式 - 页面背景 */
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        /* 暗色模式 - 主题切换按钮 */
+        body.dark-mode .theme-toggle-btn {
+            background: rgba(50, 50, 70, 0.9);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 暗色模式 - 主容器 */
+        body.dark-mode .container {
+            background: #2d2d44;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 暗色模式 - 头部区域 */
+        body.dark-mode .header {
+            background: linear-gradient(135deg, #4a00e0 0%, #8e2de2 100%);
+        }
+
+        /* 暗色模式 - 输入区域 */
+        body.dark-mode .input-section {
+            background: #363649;
+            border-bottom: 1px solid #4a4a5e;
+        }
+
+        /* 暗色模式 - 输入框 */
+        body.dark-mode .input-section textarea {
+            background: #2d2d44;
+            border: 2px solid #4a4a5e;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .input-section textarea:focus {
+            border-color: #8e2de2;
+        }
+
+        body.dark-mode .input-section textarea::placeholder {
+            color: #888;
+        }
+
+        /* 暗色模式 - 字符计数 */
+        body.dark-mode .char-count {
+            color: #999;
+        }
+
+        /* 暗色模式 - 备忘录列表标题 */
+        body.dark-mode .memo-list h2 {
+            color: #e0e0e0;
+            border-bottom: 2px solid #4a4a5e;
+        }
+
+        /* 暗色模式 - 空消息提示 */
+        body.dark-mode .empty-message {
+            color: #777;
+        }
+
+        /* 暗色模式 - 备忘录项 */
+        body.dark-mode .memo-item {
+            background: #363649;
+        }
+
+        body.dark-mode .memo-item:hover {
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 暗色模式 - 备忘录内容 */
+        body.dark-mode .memo-content {
+            color: #e0e0e0;
+        }
+
+        /* 暗色模式 - 高亮内容 */
+        body.dark-mode .memo-content.highlighted {
+            color: #ff6b6b;
+        }
+
+        /* 暗色模式 - 备忘录时间 */
+        body.dark-mode .memo-time {
+            color: #777;
+        }
+
+        /* 暗色模式 - 弹窗 */
+        body.dark-mode .modal-box {
+            background: #2d2d44;
+        }
+
+        body.dark-mode .modal-header {
+            color: #e0e0e0;
+            border-bottom: 1px solid #4a4a5e;
+        }
+
+        body.dark-mode .modal-body {
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .modal-footer {
+            border-top: 1px solid #4a4a5e;
+        }
+
+        body.dark-mode .modal-btn-cancel {
+            background: #4a4a5e;
+            color: #b0b0b0;
+        }
+
+        body.dark-mode .modal-btn-cancel:hover {
+            background: #5a5a6e;
+        }
+
+        /* 暗色模式 - 滚动条 */
+        body.dark-mode .memo-list::-webkit-scrollbar-track {
+            background: #2d2d44;
+        }
+
+        body.dark-mode .memo-list::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+
+        body.dark-mode .memo-list::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        /* ==================== 移动端主题按钮适配 ==================== */
+        @media (max-width: 480px) {
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+            }
+
+            .theme-toggle-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 主题切换按钮 - 固定在右上角 -->
+    <div class="theme-toggle">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" title="切换主题" aria-label="切换日间/暗色模式">
+            <span id="themeIcon">🌙</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>个人备忘录</h1>
+        </div>
+        
+        <div class="input-section">
+            <textarea id="memoInput" maxlength="50" placeholder="请输入备忘录内容（最多50字）..."></textarea>
+            <div class="char-count"><span id="charCount">0</span>/50</div>
+            <!-- 保存按钮，编辑模式下显示不同样式 -->
+            <button id="saveBtn" class="save-btn" onclick="saveMemo()">保存</button>
+            <!-- 导出按钮 -->
+            <button class="export-btn" onclick="exportMemos()">导出备忘录 (JSON)</button>
+        </div>
+        
+        <div class="memo-list">
+            <h2>备忘录列表</h2>
+            <div id="memoList"></div>
+        </div>
+    </div>
+
+    <!-- 自定义确认弹窗 -->
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">提示</div>
+            <div class="modal-body" id="confirmMessage"></div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal(false)">取消</button>
+                <button class="modal-btn modal-btn-confirm" onclick="closeConfirmModal(true)">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自定义提示弹窗 -->
+    <div id="alertModal" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <div class="modal-header">提示</div>
+            <div class="modal-body" id="alertMessage"></div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-confirm" onclick="closeAlertModal()" style="background: #667eea;">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 全局变量 ====================
+        // 当前编辑的备忘录ID，null表示新增模式
+        let editingId = null;
+        // localStorage存储键名
+        const STORAGE_KEY = 'memos';
+        // 主题存储键名
+        const THEME_STORAGE_KEY = 'memo-theme';
+        // 存储版本号，用于数据结构升级时迁移
+        const STORAGE_VERSION = '1.3';
+
+        // ==================== 页面初始化 ====================
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化主题（优先加载，避免闪烁）
+            initTheme();
+            // 初始化存储（检查版本并迁移数据）
+            initStorage();
+            // 加载备忘录列表
+            loadMemos();
+            // 更新字符计数
+            updateCharCount();
+        });
+
+        // ==================== 输入框相关 ====================
+        // 监听输入框内容变化
+        document.getElementById('memoInput').addEventListener('input', updateCharCount);
+
+        // 更新字符计数
+        function updateCharCount() {
+            const input = document.getElementById('memoInput');
+            const count = document.getElementById('charCount');
+            count.textContent = input.value.length;
+        }
+
+        // ==================== 存储管理 ====================
+        // 初始化存储（检查版本、迁移数据）
+        function initStorage() {
+            try {
+                const storageData = localStorage.getItem(STORAGE_KEY);
+                if (!storageData) {
+                    // 首次使用，初始化空存储
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        version: STORAGE_VERSION,
+                        data: []
+                    }));
+                    return;
+                }
+
+                const parsed = JSON.parse(storageData);
+                // 检查是否为旧版本数据（直接是数组）
+                if (Array.isArray(parsed)) {
+                    // 迁移旧数据到新格式
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        version: STORAGE_VERSION,
+                        data: parsed
+                    }));
+                    console.log('数据已迁移到V' + STORAGE_VERSION);
+                }
+            } catch (error) {
+                console.error('存储初始化失败:', error);
+                // 重置存储
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    version: STORAGE_VERSION,
+                    data: []
+                }));
+            }
+        }
+
+        // 从localStorage获取备忘录（带数据校验）
+        function getMemos() {
+            try {
+                const storageData = localStorage.getItem(STORAGE_KEY);
+                if (!storageData) return [];
+
+                const parsed = JSON.parse(storageData);
+                // 新版本格式：{version, data}
+                if (parsed.data && Array.isArray(parsed.data)) {
+                    return parsed.data;
+                }
+                // 旧版本格式：直接数组
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+                return [];
+            } catch (error) {
+                console.error('读取存储失败:', error);
+                return [];
+            }
+        }
+
+        // 保存备忘录到localStorage（立即同步）
+        function saveMemos(memos) {
+            try {
+                const storageData = {
+                    version: STORAGE_VERSION,
+                    data: memos,
+                    lastUpdate: new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
+                // 验证保存是否成功
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) {
+                    throw new Error('保存验证失败');
+                }
+            } catch (error) {
+                console.error('保存失败:', error);
+                showAlertModal('保存失败，请检查浏览器存储空间！');
+            }
+        }
+
+        // ==================== 备忘录操作 ====================
+        // 保存备忘录（新增或更新）
+        function saveMemo() {
+            const input = document.getElementById('memoInput');
+            const content = input.value.trim();
+            
+            // 验证内容是否为空
+            if (!content) {
+                showAlertModal('请输入备忘录内容！');
+                return;
+            }
+
+            const memos = getMemos();
+
+            // 判断是编辑模式还是新增模式
+            if (editingId !== null) {
+                // 编辑模式：更新现有备忘录
+                const memoIndex = memos.findIndex(m => m.id === editingId);
+                if (memoIndex !== -1) {
+                    memos[memoIndex].content = content;
+                    memos[memoIndex].time = new Date().toLocaleString('zh-CN');
+                    memos[memoIndex].updateTime = new Date().toISOString();
+                    // 保留原有的高亮状态
+                }
+                // 清除编辑状态
+                editingId = null;
+            } else {
+                // 新增模式：创建新备忘录
+                const memo = {
+                    id: Date.now(),
+                    content: content,
+                    time: new Date().toLocaleString('zh-CN'),
+                    createTime: new Date().toISOString(),
+                    highlighted: false
+                };
+                memos.unshift(memo);
+            }
+            
+            // 立即保存到本地存储
+            saveMemos(memos);
+            
+            // 清空输入框并更新字符计数
+            input.value = '';
+            updateCharCount();
+            
+            // 更新按钮样式为新增模式
+            updateSaveButton();
+            
+            // 刷新列表显示
+            loadMemos();
+        }
+
+        // 编辑备忘录
+        function editMemo(id) {
+            const memos = getMemos();
+            const memo = memos.find(m => m.id === id);
+            
+            if (memo) {
+                // 设置编辑状态
+                editingId = id;
+                
+                // 将内容回填到输入框
+                const input = document.getElementById('memoInput');
+                input.value = memo.content;
+                updateCharCount();
+                
+                // 更新保存按钮样式
+                updateSaveButton();
+                
+                // 滚动到顶部输入框
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // 聚焦输入框
+                input.focus();
+            }
+        }
+
+        // 导出备忘录为JSON文件
+        function exportMemos() {
+            const memos = getMemos();
+            
+            if (memos.length === 0) {
+                showAlertModal('暂无备忘录可导出！');
+                return;
+            }
+
+            // 构造导出数据
+            const exportData = {
+                version: STORAGE_VERSION,
+                exportTime: new Date().toLocaleString('zh-CN'),
+                totalCount: memos.length,
+                memos: memos
+            };
+
+            // 创建Blob对象
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json;charset=utf-8' });
+            
+            // 创建下载链接
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `备忘录_${new Date().toISOString().slice(0, 10)}.json`;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showAlertModal(`成功导出 ${memos.length} 条备忘录！`);
+        }
+
+        // 更新保存按钮样式
+        function updateSaveButton() {
+            const saveBtn = document.getElementById('saveBtn');
+            if (editingId !== null) {
+                // 编辑模式：蓝色按钮
+                saveBtn.textContent = '更新';
+                saveBtn.classList.add('editing');
+            } else {
+                // 新增模式：紫色按钮
+                saveBtn.textContent = '保存';
+                saveBtn.classList.remove('editing');
+            }
+        }
+
+        // ==================== 列表渲染 ====================
+
+        // 加载备忘录列表
+        function loadMemos() {
+            const memos = getMemos();
+            const listContainer = document.getElementById('memoList');
+            
+            if (memos.length === 0) {
+                listContainer.innerHTML = '<div class="empty-message">暂无备忘录，快来添加吧！</div>';
+                return;
+            }
+
+            // 渲染备忘录列表，包含编辑和删除按钮
+            listContainer.innerHTML = memos.map(memo => `
+                <div class="memo-item">
+                    <div class="memo-content ${memo.highlighted ? 'highlighted' : ''}" onclick="toggleHighlight(${memo.id})">
+                        <div>${escapeHtml(memo.content)}</div>
+                        <div class="memo-time">${memo.time}</div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="edit-btn" onclick="editMemo(${memo.id})">编辑</button>
+                        <button class="delete-btn" onclick="deleteMemo(${memo.id})">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ==================== 其他功能 ====================
+
+        // 切换高亮状态
+        function toggleHighlight(id) {
+            const memos = getMemos();
+            const memo = memos.find(m => m.id === id);
+            if (memo) {
+                memo.highlighted = !memo.highlighted;
+                // 立即保存到本地存储
+                saveMemos(memos);
+                loadMemos();
+            }
+        }
+
+        // ==================== 弹窗管理 ====================
+        // 确认弹窗回调函数
+        let confirmCallback = null;
+
+        // 显示确认弹窗
+        function showConfirmModal(message, callback) {
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmModal').style.display = 'flex';
+            confirmCallback = callback;
+        }
+
+        // 关闭确认弹窗
+        function closeConfirmModal(result) {
+            document.getElementById('confirmModal').style.display = 'none';
+            if (confirmCallback) {
+                confirmCallback(result);
+                confirmCallback = null;
+            }
+        }
+
+        // 点击遮罩层关闭确认弹窗
+        document.getElementById('confirmModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmModal(false);
+            }
+        });
+
+        // 显示提示弹窗
+        function showAlertModal(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
+
+        // 关闭提示弹窗
+        function closeAlertModal() {
+            document.getElementById('alertModal').style.display = 'none';
+        }
+
+        // 点击遮罩层关闭提示弹窗
+        document.getElementById('alertModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAlertModal();
+            }
+        });
+
+        // 删除备忘录
+        function deleteMemo(id) {
+            showConfirmModal('确定要删除这条备忘录吗？', function(confirmed) {
+                if (confirmed) {
+                    const memos = getMemos();
+                    const newMemos = memos.filter(m => m.id !== id);
+                    // 立即保存到本地存储
+                    saveMemos(newMemos);
+                    
+                    // 如果删除的是正在编辑的备忘录，清除编辑状态
+                    if (editingId === id) {
+                        editingId = null;
+                        document.getElementById('memoInput').value = '';
+                        updateCharCount();
+                        updateSaveButton();
+                    }
+                    
+                    loadMemos();
+                }
+            });
+        }
+
+        // ==================== 工具函数 ====================
+        // HTML转义，防止XSS攻击
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 支持回车键保存
+        document.getElementById('memoInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                saveMemo();
+            }
+        });
+
+        // ==================== 主题管理 ====================
+        // 初始化主题（从localStorage读取用户偏好）
+        function initTheme() {
+            const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+            // 如果用户之前选择了暗色模式，则应用
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeIcon('dark');
+            } else {
+                // 默认日间模式
+                document.body.classList.remove('dark-mode');
+                updateThemeIcon('light');
+            }
+        }
+
+        // 切换主题（日间/暗色模式）
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            // 保存用户选择到localStorage
+            localStorage.setItem(THEME_STORAGE_KEY, isDark ? 'dark' : 'light');
+            // 更新图标显示
+            updateThemeIcon(isDark ? 'dark' : 'light');
+        }
+
+        // 更新主题图标（月亮/太阳）
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (theme === 'dark') {
+                // 暗色模式显示太阳图标（点击可切换回日间）
+                icon.textContent = '☀️';
+            } else {
+                // 日间模式显示月亮图标（点击可切换到暗色）
+                icon.textContent = '🌙';
+            }
+        }
+    </script>
+</body>
+</html>
